@@ -20,6 +20,23 @@ pipeline {
                 sh 'docker build -t focusflow:jenkins .'
             }
         }
+
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                )]) {
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                        docker tag focusflow:jenkins "$DOCKER_USERNAME/focusflow:latest"
+                        docker push "$DOCKER_USERNAME/focusflow:latest"
+                        docker logout
+                    '''
+                }
+            }
+        }
     }
 
     post {
